@@ -93,7 +93,7 @@ Installable on desktop and mobile. Works as a standalone app.
 ### Prerequisites
 
 - Node.js 18+ or Bun
-- A database (SQLite by default, PostgreSQL optional)
+- A PostgreSQL database — a local instance, the bundled Docker Compose service, or a free hosted database (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com))
 
 ### Installation
 
@@ -105,8 +105,12 @@ cd life-os
 # Install dependencies
 bun install
 
-# Set up the database
+# Configure the database
 cp .env.example .env
+# Edit .env and set DATABASE_URL to your PostgreSQL connection string
+# (see "Database URL format" below)
+
+# Push the schema
 bun run db:push
 
 # Optional: add sample data
@@ -118,21 +122,30 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) and create an account.
 
+### Database URL Format
+
+`DATABASE_URL` must be a PostgreSQL connection string:
+
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+```
+
+For a local PostgreSQL server, this typically looks like:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/life_os
+```
+
 ### Using a Cloud Database (Neon / Supabase)
 
 1. Create a free PostgreSQL database on [Neon](https://neon.tech) or [Supabase](https://supabase.com)
-2. Update your `.env` file:
+2. Update your `.env` file with the connection string it gives you:
    ```env
    DATABASE_URL=postgresql://user:pass@host/dbname
    ```
-3. Update `prisma/schema.prisma` — change the provider from `sqlite` to `postgresql`:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-4. Run `bun run db:push`
+3. Run `bun run db:push`
+
+> Life OS currently supports PostgreSQL only — there is no tested SQLite mode. `prisma/schema.prisma` is already configured for PostgreSQL, so no provider changes are needed.
 
 ## 📖 Documentation
 
@@ -141,7 +154,7 @@ Open [http://localhost:3000](http://localhost:3000) and create an account.
 - **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS 4 + shadcn/ui
-- **Database**: Prisma ORM (SQLite or PostgreSQL)
+- **Database**: Prisma ORM (PostgreSQL)
 - **State**: Zustand (client) + TanStack Query (server)
 - **Auth**: Custom session-based with optional TOTP 2FA
 - **AI**: Z.AI SDK (default) or any OpenAI-compatible API
@@ -187,13 +200,17 @@ src/
 
 ## 🐳 Docker
 
-```bash
-# Build and run
-docker-compose up -d
+Life OS needs a PostgreSQL database to run. The bundled `docker-compose.yml` starts one for you alongside the app:
 
-# Or build manually
+```bash
+docker-compose up -d
+```
+
+To point at your own PostgreSQL instance instead, build the image manually and pass a `DATABASE_URL`:
+
+```bash
 docker build -t life-os .
-docker run -p 3000:3000 -v $(pwd)/db:/app/db life-os
+docker run -p 3000:3000 -e DATABASE_URL="postgresql://user:pass@host:5432/life_os" life-os
 ```
 
 ## 🔧 Configuration
