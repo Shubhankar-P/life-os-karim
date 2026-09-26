@@ -11,10 +11,9 @@ COPY . .
 
 # Set environment
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:../db/custom.db
-
-# Create db directory
-RUN mkdir -p /app/db && touch /app/db/custom.db
+# Placeholder only, so `prisma generate` can resolve the schema at build time.
+# The real DATABASE_URL is supplied at runtime (see docker-compose.yml).
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/life_os"
 
 # Generate Prisma client
 RUN bun run db:generate
